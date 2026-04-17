@@ -1,10 +1,14 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import App from '../../App'
 import { AuthProvider } from '../../auth/AuthContext.jsx'
-import { ensureMockApi, invalidateMockSession } from '../../mocks/browserMockApi'
+import {
+  ensureMockApi,
+  failNextDeleteRequest,
+  invalidateMockSession,
+} from '../../mocks/browserMockApi'
 
 function renderApplication(initialEntry = '/login') {
   ensureMockApi()
@@ -60,16 +64,86 @@ describe('Login and destination workflow', () => {
     )
     await user.click(screen.getByRole('button', { name: /create destination/i }))
 
-    expect(await screen.findByRole('heading', { name: 'Test Valley Stay' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText('Loading destinations...')).not.toBeInTheDocument()
+    })
 
-    const destinationCard = screen.getByRole('heading', { name: 'Test Valley Stay' }).closest('article')
-    const deleteButton = destinationCard.querySelector('button:last-child')
+    expect(await screen.findByText(/7 destinations/i, {}, { timeout: 5000 })).toBeInTheDocument()
+
+    const destinationHeading = await screen.findByRole(
+      'heading',
+      { name: 'Test Valley Stay' },
+      { timeout: 5000 },
+    )
+    const destinationCard = destinationHeading.closest('article')
+    const deleteButton = within(destinationCard).getByRole('button', { name: /^delete$/i })
 
     await user.click(deleteButton)
+    await user.click(screen.getByRole('button', { name: /confirm delete/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('heading', { name: 'Test Valley Stay' })).not.toBeInTheDocument()
     })
+  })
+
+  it('loads an existing destination into the form and updates it', async () => {
+    const user = userEvent.setup()
+    renderApplication()
+
+    await user.type(screen.getByLabelText(/email/i), 'manager@ruralimmersion.com')
+    await user.type(screen.getByLabelText(/password/i), 'Password123!')
+    await user.click(screen.getByRole('button', { name: /sign in/i }))
+
+    expect(
+      await screen.findByRole('heading', { name: /manage rural immersion inventory/i }),
+    ).toBeInTheDocument()
+
+    const destinationHeading = await screen.findByRole('heading', {
+      name: 'Araku Valley Coffee Trail',
+    })
+    const destinationCard = destinationHeading.closest('article')
+    const editButton = destinationCard.querySelector('button:first-child')
+
+    await user.click(editButton)
+
+    expect(screen.getByRole('heading', { name: /update destination details/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/^name$/i)).toHaveValue('Araku Valley Coffee Trail')
+
+    await user.clear(screen.getByLabelText(/^name$/i))
+    await user.type(screen.getByLabelText(/^name$/i), 'Araku Valley Heritage Trail')
+    await user.click(screen.getByRole('button', { name: /update destination/i }))
+
+    expect(
+      await screen.findByRole('heading', { name: 'Araku Valley Heritage Trail' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Araku Valley Coffee Trail' })).not.toBeInTheDocument()
+  })
+
+  it('shows row-level delete errors and keeps the destination visible when delete fails', async () => {
+    const user = userEvent.setup()
+    renderApplication()
+
+    await user.type(screen.getByLabelText(/email/i), 'manager@ruralimmersion.com')
+    await user.type(screen.getByLabelText(/password/i), 'Password123!')
+    await user.click(screen.getByRole('button', { name: /sign in/i }))
+
+    expect(
+      await screen.findByRole('heading', { name: /manage rural immersion inventory/i }),
+    ).toBeInTheDocument()
+
+    failNextDeleteRequest('Deletion was blocked by the server.')
+
+    const destinationHeading = await screen.findByRole('heading', {
+      name: 'Araku Valley Coffee Trail',
+    })
+    const destinationCard = destinationHeading.closest('article')
+    const deleteButton = destinationCard.querySelector('button:last-child')
+
+    await user.click(deleteButton)
+    await user.click(screen.getByRole('button', { name: /confirm delete/i }))
+
+    expect(await screen.findByText('Deletion was blocked by the server.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Araku Valley Coffee Trail' })).toBeInTheDocument()
   })
 
   it('redirects back to login after refresh token failure on a protected route', async () => {

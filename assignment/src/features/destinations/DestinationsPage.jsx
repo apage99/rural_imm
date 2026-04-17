@@ -35,7 +35,10 @@ export default function DestinationsPage() {
     applySearch,
     changePage,
     changePerPage,
+    clearDeleteError,
     clearServerErrors,
+    deleteErrors,
+    deletingDestinationId,
     destinations,
     error,
     filters,
@@ -49,6 +52,7 @@ export default function DestinationsPage() {
   const [searchDraft, setSearchDraft] = useState('')
   const [formValues, setFormValues] = useState(emptyForm)
   const [formErrors, setFormErrors] = useState({})
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [editingId, setEditingId] = useState(null)
 
   const handleSearchSubmit = (event) => {
@@ -71,6 +75,7 @@ export default function DestinationsPage() {
   }
 
   const handleEdit = (destination) => {
+    setConfirmDeleteId(null)
     setEditingId(destination.id)
     setFormErrors({})
     clearServerErrors()
@@ -87,6 +92,23 @@ export default function DestinationsPage() {
     setFormValues(emptyForm)
     setFormErrors({})
     clearServerErrors()
+  }
+
+  const requestDeleteConfirmation = (destinationId) => {
+    clearDeleteError(destinationId)
+    setConfirmDeleteId(destinationId)
+  }
+
+  const cancelDeleteConfirmation = () => {
+    setConfirmDeleteId(null)
+  }
+
+  const handleConfirmDelete = async (destinationId) => {
+    const didDelete = await removeDestination(destinationId)
+
+    if (didDelete) {
+      setConfirmDeleteId(null)
+    }
   }
 
   const handleSubmit = async (event) => {
@@ -167,21 +189,53 @@ export default function DestinationsPage() {
                 </div>
 
                 <div className="card-actions">
-                  <button
-                    className="ghost-button"
-                    onClick={() => handleEdit(destination)}
-                    type="button"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="ghost-button danger"
-                    onClick={() => removeDestination(destination.id)}
-                    type="button"
-                  >
-                    Delete
-                  </button>
+                  {confirmDeleteId === destination.id ? (
+                    <div className="delete-confirmation" role="alert">
+                      <p>Delete this destination?</p>
+                      <div className="card-actions">
+                        <button
+                          className="ghost-button"
+                          disabled={deletingDestinationId === destination.id}
+                          onClick={cancelDeleteConfirmation}
+                          type="button"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="ghost-button danger"
+                          disabled={deletingDestinationId === destination.id}
+                          onClick={() => handleConfirmDelete(destination.id)}
+                          type="button"
+                        >
+                          {deletingDestinationId === destination.id ? 'Deleting...' : 'Confirm delete'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        className="ghost-button"
+                        disabled={deletingDestinationId === destination.id}
+                        onClick={() => handleEdit(destination)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="ghost-button danger"
+                        disabled={deletingDestinationId === destination.id}
+                        onClick={() => requestDeleteConfirmation(destination.id)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
+
+                {deleteErrors[destination.id] ? (
+                  <p className="row-error-message">{deleteErrors[destination.id]}</p>
+                ) : null}
               </article>
             ))}
           </div>

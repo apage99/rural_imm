@@ -65,6 +65,7 @@ let accessTokenVersion = 0
 let activeAccessToken = ''
 let activeRefreshToken = ''
 let serverSessionVersion = 0
+let nextDeleteFailureMessage = null
 
 function parseBody(data) {
   if (!data) {
@@ -143,6 +144,7 @@ function resetState() {
   destinations = seededDestinations.map((destination) => ({ ...destination }))
   accessTokenVersion = 0
   serverSessionVersion = 0
+  nextDeleteFailureMessage = null
   issueTokens()
 }
 
@@ -242,6 +244,12 @@ function registerHandlers() {
       return unauthorizedResponse()
     }
 
+    if (nextDeleteFailureMessage) {
+      const message = nextDeleteFailureMessage
+      nextDeleteFailureMessage = null
+      return [500, { message }]
+    }
+
     const destinationId = config.url.split('/').pop()
     destinations = destinations.filter((destination) => destination.id !== destinationId)
     return [204]
@@ -265,6 +273,10 @@ export function invalidateMockSession({ refreshFails = false } = {}) {
   if (refreshFails) {
     activeRefreshToken = `server-expired-refresh-${serverSessionVersion + 1}`
   }
+}
+
+export function failNextDeleteRequest(message = 'Unable to delete destination.') {
+  nextDeleteFailureMessage = message
 }
 
 export function ensureMockApi() {
