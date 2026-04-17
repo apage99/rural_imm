@@ -4,6 +4,10 @@ import babel from '@rolldown/plugin-babel'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    port: 9091,
+    strictPort: true,
+  },
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] })
