@@ -1,16 +1,31 @@
 import './App.css'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './auth/useAuth'
+import LoginPage from './features/auth/LoginPage'
+import DestinationsPage from './features/destinations/DestinationsPage'
+import AppLayout from './layouts/AppLayout'
+import ProtectedRoute from './routes/ProtectedRoute'
+import PublicOnlyRoute from './routes/PublicOnlyRoute'
+
+function HomeRedirect() {
+	const { isAuthenticated } = useAuth()
+
+	return <Navigate replace to={isAuthenticated ? '/destinations' : '/login'} />
+}
 
 export default function App() {
 	return (
-		<main className="app-shell">
-			<section className="status-card">
-				<p className="eyebrow">Authentication Architecture</p>
-				<h1>Axios interceptor with queued 401 refresh flow is ready.</h1>
-				<p>
-					Configure <strong>VITE_API_DOMAIN</strong>, then import the shared client from
-					<code> src/api/authClient.js</code> for protected API requests.
-				</p>
-			</section>
-		</main>
+		<Routes>
+			<Route element={<HomeRedirect />} path="/" />
+			<Route element={<PublicOnlyRoute />}>
+				<Route element={<LoginPage />} path="/login" />
+			</Route>
+			<Route element={<ProtectedRoute />}>
+				<Route element={<AppLayout />}>
+					<Route element={<DestinationsPage />} path="/destinations" />
+				</Route>
+			</Route>
+			<Route element={<Navigate replace to="/" />} path="*" />
+		</Routes>
 	)
 }

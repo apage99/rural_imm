@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { normalizeAuthPayload } from '../auth/authPayload'
 import {
   clearAuthTokens,
   getAccessToken,
@@ -9,17 +10,6 @@ import {
 const API_DOMAIN = import.meta.env.VITE_API_DOMAIN ?? ''
 const REFRESH_ENDPOINT = '/refresh'
 
-function normalizeTokenPayload(data) {
-  const accessToken = data?.accessToken ?? data?.token ?? data?.access_token
-  const refreshToken = data?.refreshToken ?? data?.refresh_token
-
-  if (!accessToken) {
-    throw new Error('Refresh response did not include an access token.')
-  }
-
-  return { accessToken, refreshToken }
-}
-
 export function createAuthClient({
   baseURL = API_DOMAIN,
   refreshPath = REFRESH_ENDPOINT,
@@ -29,8 +19,15 @@ export function createAuthClient({
     baseURL,
   })
 
+  let authFailureHandler = onAuthFailure
   let refreshPromise = null
   let queuedRequests = []
+
+  const seededAccessToken = getAccessToken()
+
+  if (seededAccessToken) {
+    api.defaults.headers.common.Authorization = `Bearer ${seededAccessToken}`
+  }
 
   const flushQueue = ({ error, accessToken }) => {
     queuedRequests.forEach(({ config, resolve, reject }) => {
@@ -67,7 +64,7 @@ export function createAuthClient({
       data: { refreshToken },
     })
 
-    const nextTokens = normalizeTokenPayload(response.data)
+    const nextTokens = normalizeAuthPayload(response.data)
 
     setAuthTokens({
       accessToken: nextTokens.accessToken,
@@ -132,10 +129,11 @@ export function createAuthClient({
         })
       } catch (refreshError) {
         clearAuthTokens()
+        delete api.defaults.headers.common.Authorization
         flushQueue({ error: refreshError })
 
-        if (typeof onAuthFailure === 'function') {
-          onAuthFailure(refreshError)
+        if (typeof authFailureHandler === 'function') {
+          authFailureHandler(refreshError)
         }
 
         return Promise.reject(refreshError)
@@ -144,6 +142,10 @@ export function createAuthClient({
       }
     },
   )
+
+  api.setOnAuthFailure = (handler) => {
+    authFailureHandler = handler
+  }
 
   return api
 }
