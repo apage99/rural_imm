@@ -904,12 +904,13 @@
 		grid-template-columns: 1fr;
 	}
 
+	.form-panel {
+		position: static;
+	}
+}
+
 	.destination-card {
 		grid-template-columns: minmax(0, 1fr) auto;
 		align-items: start;
-	}
-
-	.form-panel {
-		position: static;
 	}
 }
