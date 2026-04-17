@@ -1,3 +1,5 @@
+Demo video Link: [https://youtu.be/JGoUmz6FKws]
+
 # Rural Immersion Assignment
 
 This repository contains a React + Vite interview assignment for a rural immersion management workflow. The application includes:
@@ -141,11 +143,3 @@ The automated test suite currently reports 6 passing tests.
 - All code and documentation changes were reviewed in the repository context before being kept.
 - Final setup instructions, verification steps, and outcomes were validated against the local project by running the actual commands in this workspace.
 
-### What To Review
-
-If you are reviewing the assignment for engineering quality, the most relevant areas are:
-
-1. Authentication flow and session refresh handling.
-2. Protected routing and navigation behavior.
-3. Destination CRUD flow, including validation and error handling.
-4. Testability of the current structure and the separation between API, auth, and feature layers.
