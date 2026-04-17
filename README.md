@@ -1,3 +1,5 @@
+Demo video Link: [https://youtu.be/JGoUmz6FKws]
+
 # Rural Immersion Assignment
 
 This repository contains a React + Vite interview assignment for a rural immersion management workflow. The application includes:
