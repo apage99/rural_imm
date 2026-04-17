@@ -149,7 +149,7 @@ function resetState() {
 }
 
 function registerHandlers() {
-  httpMock.onPost(/\/login$/).reply((config) => {
+  httpMock.onPost(/\/auth\/login$/).reply((config) => {
     const payload = parseBody(config.data)
 
     if (
@@ -162,7 +162,7 @@ function registerHandlers() {
     return [200, issueTokens()]
   })
 
-  httpMock.onPost(/\/refresh$/).reply((config) => {
+  httpMock.onPost(/\/auth\/refresh$/).reply((config) => {
     const payload = parseBody(config.data)
 
     if (payload.refreshToken !== activeRefreshToken) {
@@ -172,7 +172,7 @@ function registerHandlers() {
     return [200, issueTokens()]
   })
 
-  authMock.onGet(/\/destinations$/).reply((config) => {
+  authMock.onGet(/\/admin\/destinations$/).reply((config) => {
     if (!isAuthorized(config)) {
       return unauthorizedResponse()
     }
@@ -184,10 +184,11 @@ function registerHandlers() {
       ? destinations.filter((destination) => destination.name.toLowerCase().includes(searchTerm))
       : destinations
 
-    return [200, paginate(filteredItems, page, perPage)]
+    const paginated = paginate(filteredItems, page, perPage)
+    return [200, { destinations: paginated.items, metadata: { ...paginated.meta, total: paginated.meta.totalItems } }]
   })
 
-  authMock.onPost(/\/destinations$/).reply((config) => {
+  authMock.onPost(/\/admin\/create-destination$/).reply((config) => {
     if (!isAuthorized(config)) {
       return unauthorizedResponse()
     }
@@ -211,7 +212,7 @@ function registerHandlers() {
     return [201, destination]
   })
 
-  authMock.onPut(/\/destinations\/[^/]+$/).reply((config) => {
+  authMock.onPut(/\/admin\/update-destination\/[^/]+$/).reply((config) => {
     if (!isAuthorized(config)) {
       return unauthorizedResponse()
     }
@@ -239,7 +240,7 @@ function registerHandlers() {
     return [200, destinations.find((destination) => destination.id === destinationId)]
   })
 
-  authMock.onDelete(/\/destinations\/[^/]+$/).reply((config) => {
+  authMock.onDelete(/\/admin\/delete-destination\/[^/]+$/).reply((config) => {
     if (!isAuthorized(config)) {
       return unauthorizedResponse()
     }

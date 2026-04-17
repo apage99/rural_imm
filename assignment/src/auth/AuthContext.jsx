@@ -11,7 +11,7 @@ import {
 } from './tokenStorage'
 
 const API_DOMAIN = import.meta.env.VITE_API_DOMAIN ?? ''
-const LOGIN_ENDPOINT = '/login'
+const LOGIN_ENDPOINT = '/auth/login'
 
 function buildAnonymousState(error = null) {
   return {
@@ -87,6 +87,14 @@ export function AuthProvider({ children }) {
       })
 
       const nextAuth = normalizeAuthPayload(response.data)
+      const nextUser = nextAuth.user
+        ? {
+            ...nextAuth.user,
+            email: nextAuth.user.email ?? credentials.email,
+          }
+        : {
+            email: credentials.email,
+          }
 
       if (!nextAuth.refreshToken) {
         throw new Error('Login response did not include a refresh token.')
@@ -99,7 +107,10 @@ export function AuthProvider({ children }) {
 
       authClient.defaults.headers.common.Authorization = `Bearer ${nextAuth.accessToken}`
 
-      const nextState = buildAuthenticatedState(nextAuth)
+      const nextState = buildAuthenticatedState({
+        ...nextAuth,
+        user: nextUser,
+      })
       setAuthState(nextState)
 
       return nextState

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
+import immersionsLogo from '../../assets/immersions-logo-white.png'
 
 const emptyForm = {
   email: '',
@@ -73,61 +74,71 @@ export default function LoginPage() {
 
   return (
     <main className="app-shell auth-screen">
-      <section className="status-card auth-layout">
-        <div>
-          <p className="eyebrow">Secure Access</p>
-          <h1>Sign in to manage rural immersion destinations.</h1>
-          <p className="lede">
-            Use the shared auth client to maintain your session, refresh expired tokens, and
-            access the destinations workspace.
-          </p>
-          <div className="status-panel">
-            <p>
-              Demo credentials: <strong>manager@ruralimmersion.com</strong>
-            </p>
-            <p>
-              Demo password: <strong>Password123!</strong>
-            </p>
+      <section className="login-shell auth-layout">
+        <div className="login-brand-panel">
+          <div className="login-brand-mark">
+            <img
+              alt="Immersions at WPU logo"
+              className="login-brand-logo-image"
+              src={immersionsLogo}
+            />
+          </div>
+          <div className="login-brand-copy">
+            <h2>MIT-WPU</h2>
+            <p>World Peace University</p>
           </div>
         </div>
 
-        <form className="login-form" noValidate onSubmit={handleSubmit}>
-          <label className="field-group" htmlFor="email">
-            <span>Email</span>
-            <input
-              autoComplete="username"
-              id="email"
-              name="email"
-              onChange={handleChange}
-              placeholder="manager@ruralimmersion.com"
-              type="email"
-              value={formValues.email}
-            />
-            {formErrors.email ? <span className="error-message">{formErrors.email}</span> : null}
-          </label>
+        <div className="login-content-panel">
+          <div className="login-heading-block">
+            <h1>Immersions@WPU</h1>
+            <h2 className="support-heading">Sign in to manage rural immersion destinations.</h2>
+            <p className="lede">
+              Use the shared auth client to maintain your session, refresh expired tokens, and
+              access the destinations workspace.
+            </p>
+          </div>
 
-          <label className="field-group" htmlFor="password">
-            <span>Password</span>
-            <input
-              autoComplete="current-password"
-              id="password"
-              name="password"
-              onChange={handleChange}
-              placeholder="Enter your password"
-              type="password"
-              value={formValues.password}
-            />
-            {formErrors.password ? (
-              <span className="error-message">{formErrors.password}</span>
-            ) : null}
-          </label>
+          <form className="login-form" noValidate onSubmit={handleSubmit}>
+            <label className="field-group" htmlFor="email">
+              <span className="sr-only">Email</span>
+              <input
+                autoComplete="username"
+                id="email"
+                name="email"
+                onChange={handleChange}
+                placeholder="Enter your email"
+                type="email"
+                value={formValues.email}
+              />
+              {formErrors.email ? <span className="error-message">{formErrors.email}</span> : null}
+            </label>
 
-          {error ? <p className="error-message">{error}</p> : null}
+            <label className="field-group" htmlFor="password">
+              <span className="sr-only">Password</span>
+              <input
+                autoComplete="current-password"
+                id="password"
+                name="password"
+                onChange={handleChange}
+                placeholder="Enter your password"
+                type="password"
+                value={formValues.password}
+              />
+              {formErrors.password ? (
+                <span className="error-message">{formErrors.password}</span>
+              ) : null}
+            </label>
 
-          <button className="primary-button" disabled={isLoading} type="submit">
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
+            {error ? <p className="error-message">{error}</p> : null}
+
+            <button className="primary-button" disabled={isLoading} type="submit">
+              {isLoading ? 'Signing in...' : 'Sign in'}
+            </button>
+
+            <p className="login-footnote">Forgot Password?</p>
+          </form>
+        </div>
       </section>
     </main>
   )

@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+ assignment/.env
+
+assignment/.env.development
+assignment/.env.test
+.env

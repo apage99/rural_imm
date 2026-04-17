@@ -8,7 +8,7 @@ import {
 } from '../auth/tokenStorage'
 
 const API_DOMAIN = import.meta.env.VITE_API_DOMAIN ?? ''
-const REFRESH_ENDPOINT = '/refresh'
+const REFRESH_ENDPOINT = '/auth/refresh'
 
 export function createAuthClient({
   baseURL = API_DOMAIN,

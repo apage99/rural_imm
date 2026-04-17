@@ -1,9 +1,9 @@
 :root {
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	font-family: Aptos, 'Segoe UI Variable', 'Trebuchet MS', 'Segoe UI', sans-serif;
 	line-height: 1.5;
 	font-weight: 400;
-	color: #0f172a;
-	background: #f8fafc;
+	color: #24324d;
+	background: #f4f7fb;
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
@@ -23,4 +23,5 @@ body,
 
 body {
 	min-width: 320px;
+	background: #f4f7fb;
 }

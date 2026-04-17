@@ -80,10 +80,10 @@ export default function DestinationsPage() {
     setFormErrors({})
     clearServerErrors()
     setFormValues({
-      name: destination.name,
-      region: destination.region,
-      hostCommunity: destination.hostCommunity,
-      description: destination.description,
+      name: destination.name ?? '',
+      region: destination.region ?? '',
+      hostCommunity: destination.hostCommunity ?? '',
+      description: destination.description ?? '',
     })
   }
 
@@ -139,36 +139,63 @@ export default function DestinationsPage() {
   return (
     <section className="dashboard-grid">
       <div className="content-panel">
-        <div className="section-header">
+        <div className="section-header destinations-header-block">
           <div>
-            <p className="eyebrow">Destinations</p>
+            <p className="eyebrow">View Data</p>
+            <h1 className="management-title">Destinations and Forms Management</h1>
             <h2>Manage rural immersion inventory.</h2>
           </div>
 
-          <form className="toolbar" onSubmit={handleSearchSubmit}>
-            <input
-              aria-label="Search destinations"
-              className="search-input"
-              onChange={(event) => setSearchDraft(event.target.value)}
-              placeholder="Search by destination name"
-              value={searchDraft}
-            />
-
-            <select
-              aria-label="Results per page"
-              className="page-select"
-              onChange={(event) => changePerPage(Number(event.target.value))}
-              value={filters.perPage}
-            >
-              <option value={4}>4 / page</option>
-              <option value={6}>6 / page</option>
-              <option value={8}>8 / page</option>
-            </select>
-
-            <button className="primary-button" type="submit">
-              Search
+          <div className="segment-panel" role="tablist" aria-label="Management views">
+            <button aria-selected="true" className="segment-pill active" role="tab" type="button">
+              Destinations
+              <span>{meta.totalItems}</span>
             </button>
-          </form>
+            <button aria-selected="false" className="segment-pill" role="tab" type="button">
+              Forms
+              <span>0</span>
+            </button>
+          </div>
+
+          <div className="section-toolbar-row">
+            <form className="toolbar toolbar-search" onSubmit={handleSearchSubmit}>
+              <input
+                aria-label="Search destinations"
+                className="search-input"
+                onChange={(event) => setSearchDraft(event.target.value)}
+                placeholder="Search by name..."
+                value={searchDraft}
+              />
+
+              <select
+                aria-label="Results per page"
+                className="page-select"
+                onChange={(event) => changePerPage(Number(event.target.value))}
+                value={filters.perPage}
+              >
+                <option value={4}>4 / page</option>
+                <option value={6}>6 / page</option>
+                <option value={8}>8 / page</option>
+              </select>
+
+              <button className="ghost-button search-button" type="submit">
+                Search
+              </button>
+            </form>
+
+            <div className="toolbar action-toolbar">
+              <button
+                aria-label="Open destination creator"
+                className="primary-button"
+                type="button"
+              >
+                Create Destination
+              </button>
+              <button className="bulk-button" type="button">
+                Bulk Upload
+              </button>
+            </div>
+          </div>
         </div>
 
         {error ? <p className="error-message">{error}</p> : null}
@@ -178,15 +205,31 @@ export default function DestinationsPage() {
         ) : destinations.length === 0 ? (
           <div className="empty-state">No destinations matched the current filter.</div>
         ) : (
-          <div className="card-grid">
+          <div className="table-shell">
+            <div className="destination-table-head" aria-hidden="true">
+              <span>ID</span>
+              <span>Name</span>
+              <span>Description</span>
+              <span>Created By</span>
+              <span>Actions</span>
+            </div>
+
+            <div className="card-grid table-like-grid">
             {destinations.map((destination) => (
-              <article className="destination-card" key={destination.id}>
-                <div className="destination-copy">
-                  <p className="eyebrow">{destination.region}</p>
+              <article className="destination-card destination-row" key={destination.id}>
+                <div className="destination-id-cell">{destination.id}</div>
+
+                <div className="destination-copy destination-name-cell">
+                  <p className="eyebrow subtle">{destination.region}</p>
                   <h3>{destination.name}</h3>
                   <p className="host-community">Host community: {destination.hostCommunity}</p>
+                </div>
+
+                <div className="destination-description-cell">
                   <p>{destination.description}</p>
                 </div>
+
+                <div className="destination-created-cell">{destination.createdBy ?? 'Unknown'}</div>
 
                 <div className="card-actions">
                   {confirmDeleteId === destination.id ? (
@@ -238,6 +281,7 @@ export default function DestinationsPage() {
                 ) : null}
               </article>
             ))}
+            </div>
           </div>
         )}
 
@@ -282,56 +326,83 @@ export default function DestinationsPage() {
         </div>
 
         <form className="destination-form" noValidate onSubmit={handleSubmit}>
-          <label className="field-group" htmlFor="destination-name">
-            <span>Name</span>
-            <input id="destination-name" name="name" onChange={handleFieldChange} value={formValues.name} />
-            {formErrors.name || serverErrors.name ? (
-              <span className="error-message">{formErrors.name ?? serverErrors.name}</span>
-            ) : null}
-          </label>
+          <div className="form-section-card">
+            <div className="form-section-title-row">
+              <div className="form-section-icon">⌁</div>
+              <div>
+                <h3 className="form-section-title">Basic Information</h3>
+                <p className="form-section-copy">
+                  Add the destination identity, locality, and community details.
+                </p>
+              </div>
+            </div>
 
-          <label className="field-group" htmlFor="destination-region">
-            <span>Region</span>
-            <input id="destination-region" name="region" onChange={handleFieldChange} value={formValues.region} />
-            {formErrors.region || serverErrors.region ? (
-              <span className="error-message">{formErrors.region ?? serverErrors.region}</span>
-            ) : null}
-          </label>
+            <div className="destination-form-grid two-column">
+              <label className="field-group" htmlFor="destination-name">
+                <span>Name</span>
+                <input id="destination-name" name="name" onChange={handleFieldChange} value={formValues.name} />
+                {formErrors.name || serverErrors.name ? (
+                  <span className="error-message">{formErrors.name ?? serverErrors.name}</span>
+                ) : null}
+              </label>
 
-          <label className="field-group" htmlFor="destination-host-community">
-            <span>Host community</span>
-            <input
-              id="destination-host-community"
-              name="hostCommunity"
-              onChange={handleFieldChange}
-              value={formValues.hostCommunity}
-            />
-            {formErrors.hostCommunity || serverErrors.hostCommunity ? (
-              <span className="error-message">
-                {formErrors.hostCommunity ?? serverErrors.hostCommunity}
-              </span>
-            ) : null}
-          </label>
+              <label className="field-group" htmlFor="destination-region">
+                <span>Region</span>
+                <input id="destination-region" name="region" onChange={handleFieldChange} value={formValues.region} />
+                {formErrors.region || serverErrors.region ? (
+                  <span className="error-message">{formErrors.region ?? serverErrors.region}</span>
+                ) : null}
+              </label>
+            </div>
 
-          <label className="field-group" htmlFor="destination-description">
-            <span>Description</span>
-            <textarea
-              id="destination-description"
-              name="description"
-              onChange={handleFieldChange}
-              rows={5}
-              value={formValues.description}
-            />
-            {formErrors.description || serverErrors.description ? (
-              <span className="error-message">
-                {formErrors.description ?? serverErrors.description}
-              </span>
-            ) : null}
-          </label>
+            <label className="field-group" htmlFor="destination-description">
+              <span>Description</span>
+              <textarea
+                id="destination-description"
+                name="description"
+                onChange={handleFieldChange}
+                rows={4}
+                value={formValues.description}
+              />
+              {formErrors.description || serverErrors.description ? (
+                <span className="error-message">
+                  {formErrors.description ?? serverErrors.description}
+                </span>
+              ) : null}
+            </label>
 
-          <button className="primary-button" disabled={isSaving} type="submit">
-            {isSaving ? 'Saving...' : editingId ? 'Update destination' : 'Create destination'}
-          </button>
+            <div className="destination-form-grid two-column compact-gap">
+              <label className="field-group" htmlFor="destination-host-community">
+                <span>Host community</span>
+                <input
+                  id="destination-host-community"
+                  name="hostCommunity"
+                  onChange={handleFieldChange}
+                  value={formValues.hostCommunity}
+                />
+                {formErrors.hostCommunity || serverErrors.hostCommunity ? (
+                  <span className="error-message">
+                    {formErrors.hostCommunity ?? serverErrors.hostCommunity}
+                  </span>
+                ) : null}
+              </label>
+
+              <div className="field-group field-group-hint">
+                <span>Preview</span>
+                <div className="destination-preview-panel">
+                  <strong>{formValues.name || 'Destination title'}</strong>
+                  <span>{formValues.region || 'Region'}</span>
+                  <p>{formValues.description || 'Destination summary and operational notes.'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="destination-form-actions">
+            <button className="primary-button" disabled={isSaving} type="submit">
+              {isSaving ? 'Saving...' : editingId ? 'Update destination' : 'Create destination'}
+            </button>
+          </div>
         </form>
       </aside>
     </section>

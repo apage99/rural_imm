@@ -1,4 +1,4 @@
-import { render, screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -70,16 +70,23 @@ describe('Login and destination workflow', () => {
 
     expect(await screen.findByText(/7 destinations/i, {}, { timeout: 5000 })).toBeInTheDocument()
 
-    const destinationHeading = await screen.findByRole(
-      'heading',
-      { name: 'Test Valley Stay' },
-      { timeout: 5000 },
-    )
+    await waitFor(() => {
+      expect(screen.queryByText('Loading destinations...')).not.toBeInTheDocument()
+    })
+
+    const destinationHeading = await screen.findByRole('heading', { name: 'Test Valley Stay' })
     const destinationCard = destinationHeading.closest('article')
-    const deleteButton = within(destinationCard).getByRole('button', { name: /^delete$/i })
+    const deleteButton = await within(destinationCard).findByRole('button', { name: /^delete$/i })
 
     await user.click(deleteButton)
-    await user.click(screen.getByRole('button', { name: /confirm delete/i }))
+
+    const refreshedHeading = await screen.findByRole('heading', { name: 'Test Valley Stay' })
+    const refreshedCard = refreshedHeading.closest('article')
+    const confirmDeleteButton = await within(refreshedCard).findByRole('button', {
+      name: /confirm delete/i,
+    })
+
+    await user.click(confirmDeleteButton)
 
     await waitFor(() => {
       expect(screen.queryByRole('heading', { name: 'Test Valley Stay' })).not.toBeInTheDocument()
